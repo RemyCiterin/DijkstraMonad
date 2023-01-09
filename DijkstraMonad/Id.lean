@@ -8,16 +8,33 @@ import DijkstraMonad.Basic
 
 universe u
 
-def Id.wp (type:Type u) := (type → Prop) → Prop
+def Id.wp (type:Type u) := {f:(type → Prop) → Prop // ∀ p p':type → Prop, (∀ x, p x → p' x) → f p → f p'}
 
 instance : Monad Id.wp where
-  pure {α:Type u} (x:α) := fun p => p x
+  pure {α:Type u} (x:α) := ⟨fun p => p x, by
+    intro p p'
+    simp
+    intro h
+    apply h x
+  ⟩
 
   bind {α β: Type u} (m:Id.wp α) (f:α → Id.wp β) : Id.wp β :=
-    fun p => m (fun a => f a p)
+    ⟨
+      fun p => m.val (fun a => (f a).val p),
+      by
+        simp
+        intro p p' h1 h2
+        apply m.property (fun a => (f a).val p) (fun a => (f a).val p')
+        . intro x
+          apply (f x).property
+          assumption
+        . assumption
+    ⟩
+
+#check OrderedMonad.bindW
 
 instance : OrderedMonad Id.wp where
-  leW {α:Type u} (p1 p2:Id.wp α) := ∀ p, p1 p → p2 p
+  leW {α:Type u} (p1 p2:Id.wp α) := ∀ p, p2.val p → p1.val p
 
   refl {α:Type u} (p:Id.wp α) := by
     simp
@@ -30,9 +47,28 @@ instance : OrderedMonad Id.wp where
     intro h1 h2
     intro p
     intros
-    apply h2
     apply h1
+    apply h2
     assumption
 
-  bindW
+  bindW {α β:Type u} := by
+    simp
+    intros w w' f f' h1 h2 p h3
+    simp [bind] at *
+    apply h1
+    apply w'.property (fun a => (f' a).val p) (fun a => (f a).val p)
+    . intro x
+      apply h2 x p
+    . assumption
+
+instance : EffectObservation Id Id.wp where
+  θ {α: Type u} (x:α) := pure x
+
+  pureθ := by
+    simp
+
+  bindθ := by
+    intros α β m f
+    simp [bind, pure]
+
 
