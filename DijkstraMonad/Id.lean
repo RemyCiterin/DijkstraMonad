@@ -71,4 +71,27 @@ instance : EffectObservation Id Id.wp where
     intros α β m f
     simp [bind, pure]
 
+def Id.pre_post {α:Type u} := Prop × (α → Prop)
+
+#check Id.pre_post
+
+def Id.pre_post_to_wp {α:Type u} : @Id.pre_post α → @Id.wp α :=
+  fun (pre, post) => ⟨
+    fun p : α → Prop => (pre ∧ (∀ a, post a → p a)),
+    by
+      intros p p' h
+      simp
+      intro h'
+      constructor
+      . exact h'.1
+      . intro a h''
+        apply h
+        apply h'.2
+        assumption
+  ⟩
+
+instance : Monad Id.pre_post where
+  bind m f := sorry --bind (Id.pre_post_to_wp m) (fun x => Id.pre_post_to_wp $ f x)
+  pure {α:Type u} x := sorry -- (True, fun y => x = y)
+
 
