@@ -89,3 +89,5 @@ def Id.pre_post_to_wp {α:Type u} : Id.pre_post α → @Id.wp α :=
         apply h'.2
         assumption
   ⟩
+
+#check inferInstanceAs (DijkstraMonad Id.wp (ToDMonad Id Id.wp))

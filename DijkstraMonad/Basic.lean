@@ -27,6 +27,12 @@ class EffectObservation (M:Type u → Type v) (W:Type u → Type w) [Monad M] [M
   pureθ : {α: Type u} → (x:α) → θ (pure x) = pure x
 
 open EffectObservation in
+def ToDMonad (M:Type u → Type v) (W:Type u → Type w) [Monad M] [Monad W] [OrderedMonad W]
+  [EffectObservation M W] := fun A (w:W A) => {m:M A // EffectObservation.θ m ≤ᵂ w}
+
+#check ToDMonad
+
+open EffectObservation in
 open OrderedMonad in
 instance
   {M:Type u → Type v}
@@ -35,7 +41,7 @@ instance
   [monadW:Monad W]
   [ordMonadW:OrderedMonad W]
   [effectMW:EffectObservation M W] :
-  DijkstraMonad W (fun A w => {m:M A // θ m ≤ᵂ w}) where
+  DijkstraMonad W (ToDMonad M W) where
 
   pureD {α: Type u} (x:α) :=
     ⟨pure x, by
