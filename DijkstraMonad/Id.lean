@@ -71,6 +71,18 @@ instance : EffectObservation Id Id.wp where
     intros α β m f
     simp [bind, pure]
 
+def Id.wp.check {α:Type u} (p:α→Prop) : Id.wp α :=
+  ⟨
+    fun p' => ∀ x, p x → p' x,
+    by
+      intros p1 p2 h1 h2 x h3
+      apply h1
+      apply h2
+      assumption
+  ⟩
+
+#reduce Id.wp.check (fun x:Nat => x ≤ 2)
+
 def Id.pre_post (α:Type u) := Prop × (α → Prop)
 
 #check Id.pre_post

@@ -26,11 +26,22 @@ class EffectObservation (M:Type u → Type v) (W:Type u → Type w) [Monad M] [M
   bindθ : {α β: Type u} → (m:M α) → (f:α → M β) → θ (bind m f) = bind (θ m) (Function.comp θ f)
   pureθ : {α: Type u} → (x:α) → θ (pure x) = pure x
 
+def EffectObservation.θ' M W [Monad M] [Monad W] [OrderedMonad W] [EffectObservation M W] := @θ M W
+#check EffectObservation.θ'
+
 open EffectObservation in
 def ToDMonad (M:Type u → Type v) (W:Type u → Type w) [Monad M] [Monad W] [OrderedMonad W]
   [EffectObservation M W] := fun A (w:W A) => {m:M A // EffectObservation.θ m ≤ᵂ w}
 
 #check ToDMonad
+
+def toDMonad (M:Type u → Type v) (W:Type u → Type w) [Monad M] [Monad W] [OrderedMonad W]
+  [EffectObservation M W] {α:Type u} (x:M α) : ToDMonad M W α (EffectObservation.θ x) :=
+  ⟨
+    x,
+    by
+      apply OrderedMonad.refl
+  ⟩
 
 open EffectObservation in
 open OrderedMonad in
