@@ -93,14 +93,17 @@ def testst : ToDMonad (StateT Nat Id) (StateT Nat Id.wp) PUnit (set 0) :=
 
 #print ToDMonad
 
-def test2 : ToDMonad (StateT Nat Id) (StateT Nat Id.wp) Nat (fun _ => Id.wp.check fun (x, s') => s' = 0 ∧ x ≤ 2) :=
+#reduce StateT Nat Id.wp Nat
+
+def test2 : ToDMonad (StateT Nat Id) (StateT Nat Id.wp) Nat
+  (fun s => Id.wp.check_pre_post (s = 1) fun (x, s') => s' = 0 ∧ x ≤ 2) :=
   Do {
       with set 0 >>= fun _ => pure 1 using (by
         intro s p
-        simp [Id.wp.check]
+        simp [Id.wp.check_pre_post]
         intro h
         simp [bind, StateT.bind, pure, StateT.pure, set, StateT.set]
-        apply h
+        apply h.2
         simp
       );
       toDMonad _ _ <| set 0 with θ (set 0) using (by

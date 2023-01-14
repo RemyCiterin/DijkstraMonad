@@ -81,6 +81,19 @@ def Id.wp.check {α:Type u} (p:α→Prop) : Id.wp α :=
       assumption
   ⟩
 
+def Id.wp.check_pre_post {α:Type u} (pre:Prop) (post:α→Prop) : Id.wp α :=
+  ⟨
+    fun p => pre ∧ (∀ x, post x → p x),
+    by
+      intro p1 p2 h1 h2
+      constructor
+      . apply h2.1
+      . intro x h3
+        apply h1
+        apply h2.2
+        assumption
+  ⟩
+
 #reduce Id.wp.check (fun x:Nat => x ≤ 2)
 
 def Id.pre_post (α:Type u) := Prop × (α → Prop)
