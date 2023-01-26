@@ -1,4 +1,4 @@
-import DijkstraMonad.Read
+import DijkstraMonad.Basic
 
 /-
 def StateT (σ : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
@@ -63,3 +63,23 @@ instance {σ:Type u}
     intro s
     apply pureθ
 
+syntax "simpStateT " Lean.Parser.Tactic.locationWildcard : tactic
+syntax "simpStateT " Lean.Parser.Tactic.locationHyp : tactic
+syntax "simpStateT" : tactic
+
+macro_rules
+| `(tactic|simpStateT $id:locationHyp) =>
+  `(tactic|
+    simp only [bind, StateT.bind, pure, StateT.pure, set,
+    StateT.set, StateT.get, get, getThe, MonadStateOf.get] at $id
+  )
+| `(tactic|simpStateT $id:locationWildcard) =>
+  `(tactic|
+    simp only [bind, StateT.bind, pure, StateT.pure, set,
+    StateT.set, StateT.get, get, getThe, MonadStateOf.get] at $id
+  )
+| `(tactic|simpStateT) =>
+  `(tactic|
+    simp only [bind, StateT.bind, pure, StateT.pure, set,
+    StateT.set, StateT.get, get, getThe, MonadStateOf.get]
+  )

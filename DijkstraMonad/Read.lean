@@ -1,4 +1,4 @@
-import DijkstraMonad.Id
+import DijkstraMonad.Basic
 
 universe u v w
 

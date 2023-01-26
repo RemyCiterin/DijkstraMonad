@@ -1,4 +1,8 @@
+import DijkstraMonad.Basic
+import DijkstraMonad.Id
 import DijkstraMonad.State
+import DijkstraMonad.Read
+import DijkstraMonad.Except
 
 open EffectObservation
 open OrderedMonad
@@ -51,67 +55,3 @@ macro_rules
 
 | `(Do { $t:dijkstra_singleton }) =>
   `(DoSing {$t})
-
-#check DijkstraMonad.bindD
-
-def test : ToDMonad Id Id.wp Nat (pure 1) := pureD 1
-def test1 (i:Nat) : ToDMonad Id Id.wp Nat (pure (.succ i)) := pureD (i + 1)
-
-def test' : ToDMonad Id Id.wp Nat (pure 2) := Do {
-  let i ← test;
-  test1 i
-}
-
-#print Id.wp
-#print bindD
-
-#check EffectObservation.θ
-
-#check compD
-def testST := toDMonad (StateT Nat Id) (StateT Nat Id.wp) (set 0 >>= fun _ => pure 1)
-#reduce testST
-
-def testST' : ToDMonad (StateT Nat Id) (StateT Nat Id.wp) Nat (θ' (StateT Nat Id) _ $ set 0 >>= fun _ => pure 2) :=
-  compD (toDMonad _ _ (testST.val >>= fun x => pure (x+1))) (by
-    intro x p h
-    assumption
-  )
-
-#reduce θ' (StateT Nat Id) (StateT Nat Id.wp) <| set 0 >>= fun _ => pure 1
-#reduce StateT Nat Id.wp
-#check toDMonad
-#reduce fun s:Nat => Id.wp.check (fun (x, s') => s = s' ∧ x ≥ 2)
-
-def testst : ToDMonad (StateT Nat Id) (StateT Nat Id.wp) PUnit (set 0) :=
-  compD (toDMonad _ _ $ set 0) (by
-    intro s p h
-    simp [θ, pure]
-    simp [set, StateT.set, pure] at h
-    simp [set, StateT.set]
-    assumption
-  )
-
-#print ToDMonad
-
-#reduce StateT Nat Id.wp Nat
-
-def test2 : ToDMonad (StateT Nat Id) (StateT Nat Id.wp) Nat
-  (fun s => Id.wp.check_pre_post (s = 1) fun (x, s') => s' = 0 ∧ x ≤ 2) :=
-  Do {
-      with set 0 >>= fun _ => pure 1 using (by
-        intro s p
-        simp [Id.wp.check_pre_post]
-        intro h
-        simp [bind, StateT.bind, pure, StateT.pure, set, StateT.set]
-        apply h.2
-        simp
-      );
-      toDMonad _ _ <| set 0 with θ (set 0) using (by
-        intro s p
-        simp [set, StateT.set, θ]
-        intro h
-        assumption
-      );
-      pureD 1
-  }
-
