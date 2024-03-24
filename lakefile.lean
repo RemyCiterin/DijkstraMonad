@@ -5,6 +5,7 @@ package «dijkstraMonad» {
   -- add package configuration options here
 }
 
+@[default_target]
 lean_lib «DijkstraMonad» {
   -- add library configuration options here
 }
